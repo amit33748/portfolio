@@ -1,0 +1,310 @@
+/* CSS Styles */
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+/* Header Styles */
+.hero {
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+                url('assets/picture/satellite-bg.jpg') center/cover;
+    height: 100vh;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.3s ease-out;  /* Smooth transition */
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(0,0,0,0.8);
+    padding: 1rem;
+    z-index: 1000;
+}
+
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1.5rem;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #4CAF50;
+}
+
+/* Sections */
+.section {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.section h2 {
+    text-align: center;
+    margin-bottom: 3rem;
+    font-size: 2.5rem;
+    color: #2c3e50;
+}
+
+/* Skills Grid */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.skill-card {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.3s, background 0.3s;
+}
+
+.skill-card:hover {
+    transform: translateY(-5px);
+    background: #4CAF50;
+    color: white;
+}
+
+/* Highlight Specific Skills on Hover */
+.skill-card:hover:has(.satellite-data-processing),
+.skill-card:hover:has(.gis-analysis),
+.skill-card:hover:has(.programming) {
+    background: green;
+    color: white;
+}
+
+/* Projects Grid */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.project-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.project-info {
+    padding: 1.5rem;
+}
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.blog-post-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.blog-post-card:hover {
+    transform: translateY(-5px);
+}
+
+.blog-post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.blog-post-content {
+    padding: 1.5rem;
+}
+
+.post-meta {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.blog-post-excerpt {
+    color: #444;
+    margin: 1rem 0;
+}
+
+.read-more {
+    display: inline-block;
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+/* Update navigation */
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+nav li {
+    margin: 0 1rem;
+}
+
+/* Contact Form */
+.contact-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    background: #4CAF50;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+/* Dropdown Styles */
+.dropdown-content {
+    display: none;
+    padding: 1rem 0;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    nav a {
+        margin: 0.5rem 0;
+    }
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    margin: 10px;
+  }
+  
+  a:hover {
+    color: #0077b5; /* LinkedIn blue */
+  }
+  
+  a:hover .fa-github {
+    color: #333; /* GitHub black */
+  }
+
+.read-more {
+    color: green;
+}
+
+.read-more:hover {
+    color: rgb(77, 77, 194);
+}
+
+.blog-post-excerpt .more-text {
+    display: none;
+}
+
+.blog-post-excerpt.show-more .more-text {
+    display: inline;
+}
+
+.read-more {
+    cursor: pointer;
+    color: green; /* LinkedIn blue */
+    text-decoration: none;
+}
+
+.read-more:hover {
+    text-decoration: underline;
+}
+
+.linkedin-post {
+    margin-top: 2rem;
+    color: green;
+    font-weight: bold;
+}
+.linkedin-post:hover {
+    color: rgb(77, 77, 194);
+}
+
+
+.report-container {
+    border: 2px solid green;
+    padding: 10px;
+    display: inline-block;
+    border-radius: 25px; /* Rounded corners */
+    background-color: green; /* Green background color */
+    margin-top: 20px
+}
+
+.report {
+    color: white; /* Change text color to white for better contrast */
+    text-decoration: none;
+}
+
+.report:hover {
+    color: lightgreen; /* Change hover text color */
+    text-decoration: underline;
+}
+
+.name{
+    font-size: 3em;
+}
