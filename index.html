@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amit Bhunia · Remote Sensing &amp; GIS Analyst</title>
+<meta name="description" content="Amit Bhunia, Remote Sensing and GIS Analyst at HARSAC. PSInSAR ground deformation, UAV and stereo photogrammetry, cadastral crop mapping.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --bg:           #f7f2ea;
+  --bg-warm:      #f0e9de;
+  --bg-card:      #fdfaf6;
+  --surface:      #ffffff;
+  --border:       #e0d6c8;
+  --border-dark:  #c8b99f;
+  --text:         #231a0e;
+  --text-mid:     #5c4a34;
+  --text-muted:   #9c876a;
+  --accent:       #c1440e;
+  --accent-light: #e8603a;
+  --accent-faint: rgba(193,68,14,0.08);
+  --teal:         #2a6b6b;
+  --teal-faint:   rgba(42,107,107,0.1);
+  --gold:         #b8860b;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   TOPO BACKGROUND
+═══════════════════════════════════════════ */
+.topo-bg {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cellipse cx='100' cy='100' rx='90' ry='65' fill='none' stroke='%23c1440e' stroke-width='0.4' stroke-opacity='0.06'/%3E%3Cellipse cx='100' cy='100' rx='65' ry='45' fill='none' stroke='%23c1440e' stroke-width='0.4' stroke-opacity='0.05'/%3E%3Cellipse cx='100' cy='100' rx='40' ry='26' fill='none' stroke='%23c1440e' stroke-width='0.4' stroke-opacity='0.04'/%3E%3Cellipse cx='100' cy='100' rx='18' ry='11' fill='none' stroke='%23c1440e' stroke-width='0.4' stroke-opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ═══════════════════════════════════════════
+   KINETIC GRID HERO
+═══════════════════════════════════════════ */
+.hero-canvas-wrap {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+}
+#kgrid {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  padding: 1.1rem 0;
+  background: rgba(247,242,234,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: box-shadow 0.3s ease;
+}
+nav.scrolled { box-shadow: 0 2px 24px rgba(35,26,14,0.08); }
+
+.nav-inner {
+  max-width: 1160px; margin: 0 auto; padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--text); text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.nav-logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 2.2rem; list-style: none; }
+.nav-links a {
+  font-size: 0.8rem; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-mid);
+  text-decoration: none; transition: color 0.2s;
+  position: relative;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -3px; left: 0;
+  width: 0; height: 1.5px; background: var(--accent);
+  transition: width 0.25s var(--ease-out-expo);
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-links a:hover::after { width: 100%; }
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex; align-items: center;
+  overflow: hidden;
+  background: linear-gradient(160deg, #f7f2ea 0%, #ede4d6 100%);
+}
+
+.hero-inner {
+  position: relative; z-index: 2;
+  max-width: 1160px; margin: 0 auto; padding: 7rem 2rem 4rem;
+  display: grid; grid-template-columns: 1fr 420px; gap: 4rem; align-items: center;
+}
+
+/* Globe column */
+.hero-globe-col {
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.globe-wrap { position: relative; width: min(380px, 100%); aspect-ratio: 1; }
+#globe-mount {
+  width: 100%; height: 100%;
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  /* subtle halo that echoes the accent + teal palette */
+  box-shadow:
+    0 0 0 1px rgba(193,68,14,0.18),
+    0 0 60px rgba(193,68,14,0.10),
+    0 0 120px rgba(42,107,107,0.08);
+}
+
+/* ── Location pins (HTML, projected from the globe each frame) ── */
+.globe-pins {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
+  pointer-events: none;
+}
+.gpin {
+  position: absolute; left: 0; top: 0;
+  width: 30px; height: 30px; margin: -15px 0 0 -15px;   /* 30px hit area, 12px dot */
+  display: grid; place-items: center;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  pointer-events: auto; will-change: transform;
+  transition: opacity 0.25s;
+}
+.gpin[data-hidden="true"] { opacity: 0; pointer-events: none; }
+.gpin::before {
+  content: ''; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--pin); border: 2px solid var(--bg-card);
+  box-shadow: 0 0 0 1px var(--pin), 0 2px 6px rgba(35,26,14,0.3);
+  transition: transform 0.2s var(--ease-out-expo);
+}
+.gpin::after {
+  content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid var(--pin); opacity: 0;
+}
+.gpin:hover::before, .gpin[aria-pressed="true"]::before { transform: scale(1.3); }
+.gpin[aria-pressed="true"]::after { animation: pinPulse 1.8s var(--ease-out-expo) infinite; }
+.gpin:focus-visible { outline: 2px solid var(--pin); outline-offset: -2px; border-radius: 50%; }
+.gpin.work { --pin: var(--accent); }
+.gpin.edu  { --pin: var(--teal); }
+.gpin.home { --pin: var(--gold); }
+@keyframes pinPulse {
+  0%   { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(2.8); }
+}
+
+.globe-reset {
+  position: absolute; top: 4px; right: 4px; z-index: 3;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-mid);
+  background: var(--bg-card); border: 1px solid var(--border-dark);
+  padding: 0.45rem 0.7rem; min-height: 32px; cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.globe-reset:hover { color: var(--accent); border-color: var(--accent); }
+
+/* detail card: sits over the lower part of the globe, selected pin stays centred above it */
+.globe-card {
+  position: absolute; left: 50%; bottom: -6px; z-index: 4;
+  width: min(330px, 94%); transform: translateX(-50%);
+  background: var(--bg-card); border: 1px solid var(--border-dark);
+  box-shadow: 0 12px 36px rgba(35,26,14,0.16);
+  padding: 1rem 1.1rem 1.05rem;
+  animation: cardIn 0.35s var(--ease-out-expo) both;
+}
+.globe-card[hidden] { display: none; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.gc-header-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.gc-header-content {
+  flex: 1;
+  min-width: 0;
+}
+.gc-logo-wrap {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(35,26,14,0.06);
+}
+.gc-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.gc-type {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.64rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--pin);
+}
+.gc-type::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--pin); }
+.gc-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.02rem; line-height: 1.25; margin: 0.2rem 1.6rem 0.1rem 0; color: var(--text); }
+.gc-org { font-size: 0.78rem; color: var(--text-mid); line-height: 1.35; }
+.gc-meta { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 0.55rem; font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.gc-meta b { color: var(--text); font-weight: 500; }
+.gc-note { font-size: 0.8rem; color: var(--text-mid); margin-top: 0.55rem; padding-top: 0.55rem; border-top: 1px solid var(--border); line-height: 1.55; }
+.gc-close {
+  position: absolute; top: 6px; right: 6px; width: 32px; height: 32px;
+  display: grid; place-items: center; background: none; border: 0; cursor: pointer; color: var(--text-muted);
+}
+.gc-close:hover { color: var(--accent); }
+
+/* legend: the accessible way to pick a location */
+.globe-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-top: 0.9rem; width: 100%; }
+.gl-btn {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: 'DM Sans', sans-serif; font-size: 0.74rem; color: var(--text-mid);
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 0.4rem 0.7rem; min-height: 34px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.gl-btn::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--pin); flex-shrink: 0; }
+.gl-btn:hover { border-color: var(--pin); color: var(--text); }
+.gl-btn[aria-pressed="true"] { border-color: var(--pin); color: var(--text); background: var(--bg); }
+.gl-btn.work { --pin: var(--accent); }
+.gl-btn.edu  { --pin: var(--teal); }
+.gl-btn.home { --pin: var(--gold); }
+@media (hover: none) { .hint-drag { display: none; } }
+.globe-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.55rem; text-align: center; }
+
+/* Stats strip under the globe */
+.globe-stats-strip {
+  display: flex; align-items: center; gap: 0;
+  margin-top: 1.4rem; width: 100%;
+  background: var(--bg-card); border: 1px solid var(--border);
+}
+.gs-item {
+  flex: 1; text-align: center;
+  padding: 0.9rem 0.6rem;
+}
+.gs-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem; font-weight: 700; line-height: 1;
+  color: var(--text); letter-spacing: -0.03em;
+}
+.gs-num span { color: var(--accent); }
+.gs-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.gs-sep { width: 1px; background: var(--border); align-self: stretch; }
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 0.8rem;
+  font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500;
+  margin-bottom: 1.4rem;
+  animation: fadeUp 0.7s var(--ease-out-expo) both;
+}
+.hero-eyebrow::before {
+  content: ''; width: 28px; height: 1.5px; background: var(--accent);
+}
+
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3rem, 6vw, 5.2rem);
+  font-weight: 700; line-height: 1.04;
+  letter-spacing: -0.03em; color: var(--text);
+  margin-bottom: 0.5rem;
+  animation: fadeUp 0.8s var(--ease-out-expo) 0.08s both;
+}
+.hero h1 em {
+  font-style: italic; font-weight: 300;
+  color: var(--accent);
+}
+
+/* ═══════════════════════════════════════════
+   PIXEL SPOTLIGHT — satellite tracking mark
+═══════════════════════════════════════════ */
+.hero-text-col { position: relative; }
+
+.pixel-target {
+  position: relative;
+  display: inline-block;
+  padding: 0.04em 0.16em 0.09em;
+  border: 1px dashed rgba(193,68,14,0.45);
+  z-index: 2;
+}
+
+/* corner reticle ticks */
+.pt-corner {
+  position: absolute; width: 9px; height: 9px;
+  border: 2px solid var(--accent);
+  z-index: 3; pointer-events: none;
+}
+.pt-corner.tl { top: -5px;    left: -5px;  border-right: none; border-bottom: none; }
+.pt-corner.tr { top: -5px;    right: -5px; border-left: none;  border-bottom: none; }
+.pt-corner.bl { bottom: -5px; left: -5px;  border-right: none; border-top: none; }
+.pt-corner.br { bottom: -5px; right: -5px; border-left: none;  border-top: none; }
+
+/* tracking tag pill: sits in the free space right of "by pixel." (line 3),
+   never above the target where it used to collide with "Mapping the" */
+.pt-tag {
+  position: absolute;
+  left: calc(100% - 28px); top: calc(100% + 14px);
+  z-index: 4;
+  display: inline-flex; align-items: center; gap: 0.45em;
+  white-space: nowrap;
+  font-family: 'IBM Plex Mono', monospace;
+  font-style: normal; font-weight: 500;
+  font-size: 0.6rem; letter-spacing: 0.11em; text-transform: uppercase;
+  color: var(--gold);
+  background: var(--text);
+  padding: 0.34em 0.65em;
+  border: 1px solid rgba(184,134,11,0.35);
+}
+.pt-tag::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  animation: ptPulse 1.6s ease-in-out infinite;
+}
+
+/* scanner: a pivoting arm rooted at the right edge of the target, sweeping
+   into the empty space after "pixel". The whole rig is turned 90deg, so the
+   satellite counter-rotation below compensates by the same amount. */
+.pt-scanner {
+  position: absolute; left: calc(100% + 6px); top: 50%;
+  width: 0; height: 0; z-index: 3;
+  transform: rotate(90deg);
+}
+.pt-arm {
+  position: absolute; left: -1px; bottom: 0;
+  width: 2px; height: 40px;
+  transform-origin: bottom center;
+  background: linear-gradient(to top, var(--accent) 0%, rgba(193,68,14,0.15) 78%, transparent 100%);
+  animation: ptSweep 6.4s cubic-bezier(0.45,0,0.55,1) infinite;
+}
+.pt-arm.echo {
+  width: 1px; height: 30px;
+  background: linear-gradient(to top, var(--teal) 0%, transparent 100%);
+  opacity: 0.55;
+  animation-name: ptSweepEcho;
+}
+.pt-sat {
+  position: absolute; top: -9px; left: 0;
+  transform: translateX(-50%);
+  color: var(--text-mid);
+  animation: ptCounter 6.4s cubic-bezier(0.45,0,0.55,1) infinite;
+}
+.pt-sat svg { display: block; filter: drop-shadow(0 1px 1px rgba(35,26,14,0.15)); }
+
+@keyframes ptSweep {
+  0%   { transform: rotate(-36deg); }
+  50%  { transform: rotate(36deg); }
+  100% { transform: rotate(-36deg); }
+}
+@keyframes ptSweepEcho {
+  0%   { transform: rotate(-24deg); }
+  50%  { transform: rotate(24deg); }
+  100% { transform: rotate(-24deg); }
+}
+@keyframes ptCounter {
+  0%   { transform: translateX(-50%) rotate(-54deg); }
+  50%  { transform: translateX(-50%) rotate(-126deg); }
+  100% { transform: translateX(-50%) rotate(-54deg); }
+}
+@keyframes ptPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-arm, .pt-arm.echo, .pt-sat, .pt-tag::before { animation: none !important; }
+}
+@media (max-width: 1100px) and (min-width: 961px) {
+  .pt-tag { display: none; }
+}
+@media (max-width: 600px) {
+  .pt-tag { display: none; }
+  .pt-arm { height: 32px; }
+  .pt-arm.echo { height: 24px; }
+}
+
+.hero-tagline {
+  font-size: 1.05rem; color: var(--text-mid); line-height: 1.7;
+  max-width: 480px; margin-bottom: 2.5rem;
+  animation: fadeUp 0.8s var(--ease-out-expo) 0.16s both;
+}
+
+.hero-location {
+  font-size: 0.78rem; color: var(--text-muted);
+  margin-bottom: 2.4rem; letter-spacing: 0.04em;
+  animation: fadeUp 0.8s var(--ease-out-expo) 0.22s both;
+}
+.hero-location::before { content: '◉  '; color: var(--accent); font-size: 0.6rem; }
+
+.hero-btns {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  animation: fadeUp 0.8s var(--ease-out-expo) 0.28s both;
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  background: var(--accent); color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  background: transparent; color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.05em;
+  text-decoration: none; border: 1.5px solid var(--border-dark);
+  transition: all 0.2s;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+/* Hero card */
+.hero-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 2.2rem;
+  position: relative;
+  animation: fadeUp 1s var(--ease-out-expo) 0.2s both;
+  box-shadow: 0 8px 40px rgba(35,26,14,0.08);
+}
+.hero-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+}
+.hcard-label {
+  font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 1.4rem;
+}
+.hcard-stat { margin-bottom: 1.2rem; }
+.hcard-num {
+  font-family: 'Fraunces', serif;
+  font-size: 2.4rem; font-weight: 700; line-height: 1;
+  color: var(--text); letter-spacing: -0.03em;
+}
+.hcard-num span { color: var(--accent); }
+.hcard-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+.hcard-divider { height: 1px; background: var(--border); margin: 1rem 0; }
+.hcard-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+.hskill {
+  font-size: 0.68rem; padding: 0.25rem 0.7rem;
+  background: var(--accent-faint); color: var(--accent);
+  letter-spacing: 0.06em; font-weight: 500;
+}
+.hskill.teal {
+  background: var(--teal-faint); color: var(--teal);
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT UTILS
+═══════════════════════════════════════════ */
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 2rem; }
+section { padding: 6rem 0; position: relative; z-index: 1; }
+section:nth-child(even) { background: var(--bg-warm); }
+
+.section-header { margin-bottom: 3.5rem; }
+.section-eyebrow {
+  display: flex; align-items: center; gap: 0.7rem;
+  font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500; margin-bottom: 0.8rem;
+}
+.section-eyebrow::before { content: ''; width: 20px; height: 1.5px; background: var(--accent); }
+.section-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 3.5vw, 2.8rem);
+  font-weight: 700; letter-spacing: -0.025em; line-height: 1.1;
+  color: var(--text);
+}
+.section-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+
+/* ═══════════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════════ */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.75s var(--ease-out-expo), transform 0.75s var(--ease-out-expo);
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ═══════════════════════════════════════════
+   ABOUT SECTION
+═══════════════════════════════════════════ */
+.about-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start;
+}
+.about-text p {
+  font-size: 1rem; color: var(--text-mid); line-height: 1.8;
+  margin-bottom: 1.2rem;
+}
+.about-text p:first-child { font-size: 1.1rem; color: var(--text); }
+.about-text strong { color: var(--accent); font-weight: 500; }
+
+.contact-block { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.7rem; }
+.contact-item {
+  display: flex; align-items: center; gap: 1rem;
+  font-size: 0.82rem; color: var(--text-mid);
+  text-decoration: none;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: color 0.2s;
+}
+.contact-item:hover { color: var(--accent); }
+.contact-icon {
+  width: 32px; height: 32px;
+  background: var(--accent-faint);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: var(--accent); flex-shrink: 0;
+}
+
+.about-highlights { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+.highlight-row {
+  background: var(--bg-card);
+  padding: 1.4rem 1.8rem;
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 1.2rem; align-items: center;
+  transition: background 0.2s;
+}
+.highlight-row:hover { background: var(--bg-warm); }
+.highlight-num {
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem; font-weight: 700;
+  color: var(--accent); line-height: 1;
+  letter-spacing: -0.03em; min-width: 60px;
+}
+.highlight-label { font-size: 0.88rem; color: var(--text-mid); line-height: 1.4; }
+.highlight-label strong { display: block; color: var(--text); font-weight: 500; font-size: 0.95rem; }
+
+/* ═══════════════════════════════════════════
+   EXPERIENCE
+═══════════════════════════════════════════ */
+.timeline { position: relative; }
+.timeline::before {
+  content: ''; position: absolute;
+  left: 10px; top: 8px; bottom: 8px; width: 1px;
+  background: linear-gradient(to bottom, var(--accent), var(--teal));
+}
+.timeline-item {
+  display: grid; grid-template-columns: 44px 1fr;
+  gap: 1.5rem; margin-bottom: 2.5rem;
+}
+.timeline-item:last-child { margin-bottom: 0; }
+.tl-dot {
+  width: 20px; height: 20px;
+  border: 2px solid var(--accent);
+  background: var(--bg-card);
+  border-radius: 50%;
+  position: relative; top: 6px;
+  margin-left: 1px;
+  transition: background 0.3s, transform 0.3s;
+  flex-shrink: 0;
+}
+.timeline-item:hover .tl-dot {
+  background: var(--accent); transform: scale(1.2);
+}
+.tl-body {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 1.6rem 1.8rem;
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+.tl-body:hover {
+  border-color: var(--border-dark);
+  box-shadow: 0 4px 24px rgba(35,26,14,0.07);
+}
+.tl-company {
+  font-family: 'Fraunces', serif; font-size: 1.05rem;
+  font-weight: 700; color: var(--text); letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 0.85rem;
+}
+
+/* org-badge — company logo / institutional badge in the timeline */
+.org-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(35,26,14,0.06);
+  padding: 4px;
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s, border-color 0.25s;
+}
+.timeline-item:hover .org-badge {
+  transform: translateY(-2px) scale(1.05);
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(35,26,14,0.12);
+}
+.org-badge img, .org-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.org-badge svg { display: block; }
+.btn-sm-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.25s var(--ease-out-expo);
+  box-shadow: 0 1px 4px rgba(35,26,14,0.04);
+}
+.btn-sm-outline:hover {
+  background: var(--accent);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(193,68,14,0.25);
+}
+.tl-period {
+  font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500; white-space: nowrap;
+}
+.tl-role {
+  font-size: 0.82rem; color: var(--text-muted);
+  margin-bottom: 1rem; font-style: italic;
+}
+.tl-bullets { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.tl-bullets li {
+  font-size: 0.88rem; color: var(--text-mid);
+  padding-left: 1.2rem; position: relative; line-height: 1.6;
+}
+.tl-bullets li::before {
+  content: '→'; position: absolute; left: 0;
+  color: var(--accent); font-size: 0.75rem; top: 2px;
+}
+.tl-bullets strong { color: var(--text); font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   PROJECTS
+═══════════════════════════════════════════ */
+.projects-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+}
+.project-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 2rem;
+  position: relative; overflow: hidden;
+  transition: transform 0.3s var(--ease-out-expo), box-shadow 0.3s, border-color 0.3s;
+}
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(35,26,14,0.1);
+  border-color: var(--border-dark);
+}
+.project-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s var(--ease-out-expo);
+}
+.project-card:hover::after { transform: scaleX(1); }
+
+.project-num {
+  font-family: 'Fraunces', serif;
+  font-size: 3.5rem; font-weight: 700; line-height: 1;
+  color: var(--border-dark); letter-spacing: -0.04em;
+  margin-bottom: 0.8rem;
+  transition: color 0.3s;
+}
+.project-card:hover .project-num { color: var(--accent); opacity: 0.3; }
+.project-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem; font-weight: 600; line-height: 1.3;
+  color: var(--text); margin-bottom: 0.8rem; letter-spacing: -0.01em;
+}
+.project-desc {
+  font-size: 0.83rem; color: var(--text-mid); line-height: 1.7;
+  margin-bottom: 1.2rem;
+}
+.project-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ptag {
+  font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--border-dark); color: var(--text-muted);
+  transition: all 0.2s;
+}
+.project-card:hover .ptag { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   SKILLS
+═══════════════════════════════════════════ */
+/* skills as a stack ledger: category on the left, the actual tools on the right.
+   No percentage bars: self-rated percentages are unverifiable, so they are gone. */
+.skill-ledger { border-top: 1px solid var(--border-dark); }
+.skill-row {
+  display: grid; grid-template-columns: 220px 1fr; gap: 2rem;
+  padding: 1.25rem 0; border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.skill-row-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500;
+}
+.skill-row-label small {
+  display: block; margin-top: 0.2rem;
+  font-family: 'DM Sans', sans-serif; text-transform: none; letter-spacing: 0;
+  font-size: 0.78rem; color: var(--text-muted); font-weight: 400;
+}
+.skill-chips { display: flex; flex-wrap: wrap; gap: 0.45rem 0.5rem; list-style: none; }
+.skill-chips li {
+  font-size: 0.88rem; color: var(--text); padding: 0.32rem 0.75rem;
+  background: var(--bg-card); border: 1px solid var(--border);
+  transition: border-color 0.2s, color 0.2s;
+}
+.skill-chips li:hover { border-color: var(--accent); color: var(--accent); }
+.skill-chips li.core { border-color: var(--border-dark); font-weight: 500; }
+.skill-chips li .lvl { font-size: 0.72rem; color: var(--text-muted); margin-left: 0.3rem; }
+
+/* ═══════════════════════════════════════════
+   HARSAC WORKSTREAMS (what the work was used for)
+═══════════════════════════════════════════ */
+.workstreams {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+  margin-top: 1.4rem; border-top: 1px solid var(--border);
+}
+.ws { padding: 1.1rem 1.2rem 0.2rem 0; }
+.ws + .ws { padding-left: 1.2rem; border-left: 1px solid var(--border); }
+.ws-kicker {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal);
+  margin-bottom: 0.35rem;
+}
+.ws-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; color: var(--text); line-height: 1.25; }
+.ws-use { font-size: 0.82rem; color: var(--text-mid); margin-top: 0.35rem; line-height: 1.55; }
+.ws-use b { color: var(--accent); font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   FEATURED PROJECT + LOS VELOCITY SCALE
+═══════════════════════════════════════════ */
+.project-card.featured { grid-column: 1 / -1; display: grid; grid-template-columns: 1.15fr 1fr; gap: 2.5rem; align-items: center; }
+.vel-panel { background: var(--bg); border: 1px solid var(--border); padding: 1.4rem 1.5rem 1.2rem; }
+.vel-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.66rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 0.8rem;
+}
+.vel-ramp {
+  height: 14px;
+  /* diverging ramp, zero at 60% of the span (-30 … 0 … +20) */
+  background: linear-gradient(90deg, #8f2a08 0%, var(--accent) 22%, #e9b48e 46%, #efe6d8 60%, #9cc3bd 78%, var(--teal) 100%);
+  border: 1px solid var(--border-dark);
+}
+.vel-ticks { position: relative; height: 1.6rem; margin-top: 0.3rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text-mid); }
+.vel-ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+.vel-ticks span:first-child { transform: none; }
+.vel-ticks span:last-child { transform: translateX(-100%); }
+.vel-ticks span.zero { color: var(--text); font-weight: 600; }
+.vel-legend { display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-muted); }
+.vel-facts { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 1.1rem; border-top: 1px solid var(--border); padding-top: 0.9rem; }
+.vel-facts div { font-size: 0.74rem; color: var(--text-muted); }
+.vel-facts strong { display: block; font-family: 'Fraunces', serif; font-size: 1.25rem; color: var(--text); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+
+/* live portal panel (Haryana project) */
+.portal-panel { background: var(--bg); border: 1px solid var(--border); }
+.portal-bar {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--text-mid);
+  background: var(--bg-card);
+}
+.portal-bar .live {
+  display: inline-flex; align-items: center; gap: 0.35rem; margin-left: auto;
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal);
+}
+.portal-bar .live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: ptPulse 1.6s ease-in-out infinite; }
+.portal-list { list-style: none; padding: 0.4rem 0.9rem; }
+.portal-list li {
+  display: grid; grid-template-columns: 1.4rem 1fr; gap: 0.5rem; align-items: baseline;
+  padding: 0.55rem 0; font-size: 0.84rem; color: var(--text-mid);
+}
+.portal-list li + li { border-top: 1px dashed var(--border); }
+.portal-list .n { font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; color: var(--accent); }
+.portal-cta {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  margin: 0.4rem 0.9rem 0.9rem; padding: 0.75rem 1rem; min-height: 44px;
+  background: var(--accent); color: var(--bg-card); text-decoration: none;
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.04em;
+  transition: background 0.2s, transform 0.2s;
+}
+.portal-cta:hover { background: var(--accent-light); transform: translateY(-2px); }
+.ws-link, .gc-link {
+  display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.45rem;
+  font-size: 0.78rem; font-weight: 500; color: var(--accent); text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+.ws-link .ico, .gc-link .ico { width: 13px; height: 13px; }
+
+/* ═══════════════════════════════════════════
+   CERTIFICATIONS
+═══════════════════════════════════════════ */
+.certs { margin-top: 3rem; }
+.certs-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.9rem;
+}
+.cert {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center;
+  padding: 1rem 0; border-top: 1px solid var(--border);
+}
+.cert:last-child { border-bottom: 1px solid var(--border); }
+.cert-issuer {
+  font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em;
+  color: var(--teal); border: 1px solid var(--teal); padding: 0.15rem 0.5rem;
+}
+.cert-name { font-size: 0.95rem; color: var(--text); }
+.cert-topic { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+
+/* ═══════════════════════════════════════════
+   ICONS, FOCUS, SKIP LINK, MOBILE NAV
+═══════════════════════════════════════════ */
+.ico { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.skip-link {
+  position: absolute; left: 1rem; top: -100px; z-index: 300;
+  background: var(--text); color: var(--bg); padding: 0.6rem 1rem; font-size: 0.85rem;
+}
+.skip-link:focus { top: 1rem; }
+.nav-toggle {
+  display: none; background: none; border: 1px solid var(--border-dark);
+  width: 44px; height: 44px; align-items: center; justify-content: center;
+  color: var(--text); cursor: pointer;
+}
+.nav-cv {
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent); text-decoration: none; border: 1.5px solid var(--accent);
+  padding: 0.45rem 0.9rem; transition: background 0.2s, color 0.2s;
+}
+.nav-cv:hover { background: var(--accent); color: var(--bg-card); }
+
+/* ═══════════════════════════════════════════
+   EDUCATION
+═══════════════════════════════════════════ */
+.edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.edu-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 2rem; position: relative; overflow: hidden;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+.edu-card:hover { box-shadow: 0 6px 28px rgba(35,26,14,0.08); border-color: var(--border-dark); }
+.edu-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+}
+.edu-degree {
+  font-family: 'Fraunces', serif; font-size: 1.05rem;
+  font-weight: 700; color: var(--text); margin-bottom: 0.3rem;
+  letter-spacing: -0.01em; 
+}
+.edu-uni { font-size: 0.82rem; color: var(--text-mid);  margin-bottom: 0.5rem; }
+.edu-meta { display: flex; justify-content: space-between;  margin-top: 1rem; }
+.edu-year { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.08em; }
+.edu-cgpa {
+  font-family: 'Fraunces', serif; font-size: 1.1rem;
+  font-weight: 700; color: var(--accent);
+}
+.edu-cgpa-label { font-size: 0.62rem; color: var(--text-muted); display: block; text-align: right; }
+
+/* ═══════════════════════════════════════════
+   CONTACT SECTION
+═══════════════════════════════════════════ */
+.contact-section {
+  padding: 0;
+  background: var(--text);
+  color: #f0e9de;
+  position: relative; overflow: hidden;
+}
+.contact-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cellipse cx='100' cy='100' rx='90' ry='65' fill='none' stroke='%23c1440e' stroke-width='0.5' stroke-opacity='0.12'/%3E%3Cellipse cx='100' cy='100' rx='65' ry='45' fill='none' stroke='%23c1440e' stroke-width='0.4' stroke-opacity='0.08'/%3E%3Cellipse cx='100' cy='100' rx='40' ry='26' fill='none' stroke='%23c1440e' stroke-width='0.3' stroke-opacity='0.06'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+}
+.contact-inner {
+  position: relative; z-index: 1;
+  max-width: 1160px; margin: 0 auto; padding: 6rem 2rem;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center;
+}
+.contact-section .section-eyebrow { color: var(--accent); }
+.contact-section .section-title { color: #f0e9de; }
+.contact-section .section-title em { color: var(--accent-light); }
+.contact-section p { color: rgba(240,233,222,0.7); font-size: 0.95rem; line-height: 1.8; margin-top: 1rem; }
+.contact-links { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 2rem; }
+.clink {
+  display: flex; align-items: center; gap: 1.2rem;
+  font-size: 0.85rem; color: rgba(240,233,222,0.75);
+  text-decoration: none; padding: 1rem 1.2rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  transition: all 0.25s;
+}
+.clink:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(193,68,14,0.08);
+  transform: translateX(4px);
+}
+.clink-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  color: var(--accent);
+}
+.clink-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.clink-val {
+  font-size: 0.88rem;
+  color: #f0e9de;
+}
+
+/* ═══════════════════════════════════════════
+   CONTACT FORM
+═══════════════════════════════════════════ */
+.contact-form {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2.2rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.form-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f0e9de;
+  margin-bottom: 0.2rem;
+}
+.form-subtitle {
+  font-size: 0.82rem;
+  color: rgba(240, 233, 222, 0.65);
+  margin-bottom: 0.4rem;
+}
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.form-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  color: #f0e9de;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+.form-input::placeholder { color: rgba(240, 233, 222, 0.4); }
+.form-textarea { resize: vertical; min-height: 95px; }
+.form-status {
+  font-size: 0.82rem;
+  min-height: 1.2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.form-status.success { color: #52c41a; font-weight: 500; }
+.form-status.error { color: #ff4d4f; font-weight: 500; }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+footer {
+  background: #1a1208;
+  padding: 1.8rem 0;
+  text-align: center;
+  font-size: 0.75rem; color: rgba(240,233,222,0.3);
+  letter-spacing: 0.06em;
+  position: relative; z-index: 1;
+}
+footer span { color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-globe-col { order: 2; margin-top: 1rem; }
+  .about-grid, .edu-grid, .contact-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+  .projects-grid, .project-card.featured { grid-template-columns: 1fr; }
+  .skill-row { grid-template-columns: 1fr; gap: 0.7rem; }
+  .workstreams { grid-template-columns: 1fr; }
+  .ws + .ws { padding-left: 0; border-left: none; border-top: 1px solid var(--border); }
+}
+@media (max-width: 760px) {
+  .nav-toggle { display: inline-flex; }
+  .nav-cv { display: none; }
+  .nav-links {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; gap: 0; background: var(--bg-card);
+    border-bottom: 1px solid var(--border); padding: 0.5rem 2rem 1rem;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { display: block; padding: 0.85rem 0; font-size: 0.9rem; }
+  .nav-links a::after { display: none; }
+  .cert { grid-template-columns: auto 1fr; }
+  .cert-topic { display: none; }
+}
+@media (max-width: 600px) {
+  .wrap, .nav-inner, .hero-inner, .contact-inner { padding-left: 1rem; padding-right: 1rem; }
+  .hero h1 { font-size: 2.6rem; }
+  section { padding: 4.5rem 0; }
+  .tl-header { flex-direction: column; gap: 0.3rem; }
+  .tl-body, .project-card { padding: 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-eyebrow, .hero h1, .hero-tagline, .hero-location, .hero-btns { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to content</a>
+<div class="topo-bg"></div>
+
+<!-- NAV -->
+<nav id="nav" aria-label="Primary">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo">Amit <span>Bhunia</span></a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="Amit_Bhunia_CV.pdf" class="nav-cv" download>CV ↓</a>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</nav>
+<main id="main">
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-canvas-wrap">
+    <canvas id="kgrid"></canvas>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-text-col">
+      <div class="hero-eyebrow">PSInSAR · Photogrammetry · Crop Mapping · GIS</div>
+      <h1>Mapping the<br>Earth, <span class="pixel-target"><em>pixel</em><span class="pt-corner tl" aria-hidden="true"></span><span class="pt-corner tr" aria-hidden="true"></span><span class="pt-corner bl" aria-hidden="true"></span><span class="pt-corner br" aria-hidden="true"></span><span class="pt-tag" aria-hidden="true">Spotlight · SAR · Tracking</span><span class="pt-scanner" aria-hidden="true"><span class="pt-arm echo"></span><span class="pt-arm"></span><span class="pt-sat"><svg viewBox="0 0 32 18" width="26" height="15" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="6" width="8" height="6" rx="0.6" stroke="currentColor" stroke-width="1"/><line x1="1" y1="4" x2="11" y2="7" stroke="currentColor" stroke-width="1"/><line x1="1" y1="11" x2="11" y2="8.5" stroke="currentColor" stroke-width="1"/><rect x="0" y="2.5" width="1.3" height="10" fill="currentColor"/><line x1="21" y1="7" x2="31" y2="4" stroke="currentColor" stroke-width="1"/><line x1="21" y1="8.5" x2="31" y2="11" stroke="currentColor" stroke-width="1"/><rect x="30.7" y="2.5" width="1.3" height="10" fill="currentColor"/><line x1="16" y1="6" x2="16" y2="2" stroke="currentColor" stroke-width="1"/><circle cx="16" cy="1.3" r="1" fill="currentColor"/></svg></span></span></span><br>by pixel.</h1>
+      <p class="hero-tagline">
+        Remote Sensing and GIS Analyst at HARSAC. I map ground deformation across Haryana with
+        Sentinel-1 PSInSAR, build DSMs and DTMs of mining sites for illegal-mining checks and volume
+        estimates, and map crops down to the cadastral parcel.
+      </p>
+      <p class="hero-location">Project Fellow, HARSAC · From Gangasagar, West Bengal</p>
+      <div class="hero-btns">
+        <a href="#projects" class="btn-primary">View Projects ↓</a>
+        <a href="Amit_Bhunia_CV.pdf" class="btn-outline" download>Download CV</a>
+      </div>
+    </div>
+
+    <!-- GLOBE + compact stats -->
+    <div class="hero-globe-col reveal">
+      <div class="globe-wrap">
+        <div id="globe-mount" role="img" aria-label="Globe centred on India marking Amit's education and work locations"></div>
+        <div class="globe-pins" id="globe-pins"></div>
+        <button class="globe-reset" id="globe-reset" type="button" hidden>India view</button>
+        <div class="globe-card" id="globe-card" hidden aria-live="polite"></div>
+      </div>
+      <div class="globe-stats-strip">
+        <div class="gs-item">
+          <div class="gs-num">36</div>
+          <div class="gs-label">S-1 scenes, Haryana</div>
+        </div>
+        <div class="gs-sep"></div>
+        <div class="gs-item">
+          <div class="gs-num">7<span>+</span></div>
+          <div class="gs-label">Mining sites</div>
+        </div>
+        <div class="gs-sep"></div>
+        <div class="gs-item">
+          <div class="gs-num">9<span>.02</span></div>
+          <div class="gs-label">M.Sc. CGPA</div>
+        </div>
+      </div>
+      <div class="globe-legend" id="globe-legend" aria-label="Locations on the globe"></div>
+      <p class="globe-hint">Select a point to see details.<span class="hint-drag"> Drag to rotate.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <div class="section-header">
+          <div class="section-eyebrow">About</div>
+          <h2 class="section-title">From field to <em>satellite</em></h2>
+        </div>
+        <p>
+          I work on the analysis end of remote sensing: taking SAR stacks, stereo pairs and drone
+          imagery and turning them into maps that a department can act on.
+        </p>
+        <p>
+          At <strong>HARSAC (Haryana Space Applications Centre)</strong> I derive Sentinel-1
+          <strong>PSInSAR</strong> LOS velocity for the whole state, generate DEMs, DSMs and orthophotos of
+          mining sites in <strong>Trimble Inpho UAS Master</strong>, and run time-series crop mapping
+          with semi-physical rice yield estimation.
+        </p>
+        <p>
+          Field work is part of the job: DGPS control, LAI and chlorophyll readings that keep the
+          satellite products honest.
+        </p>
+        <div class="contact-block">
+          <a href="mailto:amitbhuniagis@gmail.com" class="contact-item">
+            <div class="contact-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg></div>
+            amitbhuniagis@gmail.com
+          </a>
+          <a href="tel:+917908453388" class="contact-item">
+            <div class="contact-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></div>
+            +91 79084 53388
+          </a>
+          <a href="https://www.linkedin.com/in/amit-bhunia-813932260" class="contact-item" target="_blank" rel="noopener">
+            <div class="contact-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></div>
+            linkedin.com/in/amit-bhunia-813932260
+          </a>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2">
+        <div class="about-highlights">
+          <div class="highlight-row">
+            <div class="highlight-num">2+</div>
+            <div class="highlight-label">
+              <strong>Years in geospatial work</strong>
+              HARSAC (Govt. of Haryana) and NeoGeoInfo Technologies
+            </div>
+          </div>
+          <div class="highlight-row">
+            <div class="highlight-num">100%</div>
+            <div class="highlight-label">
+              <strong>of Haryana in LOS velocity</strong>
+              Used for groundwater verification and landslide prediction
+            </div>
+          </div>
+          <div class="highlight-row">
+            <div class="highlight-num">7+</div>
+            <div class="highlight-label">
+              <strong>Mining sites modelled</strong>
+              DSM / DTM for illegal mining detection and volume estimation
+            </div>
+          </div>
+          <div class="highlight-row">
+            <div class="highlight-num">−30</div>
+            <div class="highlight-label">
+              <strong>mm/yr, Kolkata PSInSAR</strong>
+              LOS range −30 to +20 mm/yr from 21 Sentinel-1 scenes
+            </div>
+          </div>
+          <div class="highlight-row">
+            <div class="highlight-num">2×</div>
+            <div class="highlight-label">
+              <strong>NASA SAR certifications</strong>
+              SAR fundamentals and NISAR Earth applications
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="wrap">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Work Experience</div>
+      <h2 class="section-title">Where I've <em>worked</em></h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item reveal reveal-delay-1">
+        <div class="tl-dot"></div>
+        <div class="tl-body">
+          <div class="tl-header">
+            <div class="tl-company">
+              <span class="org-badge" title="Haryana Space Applications Centre (HARSAC)">
+                <img src="HARSAC-Logo.png" alt="HARSAC Logo" class="org-logo-img">
+              </span>
+              <span>Haryana Space Applications Centre (HARSAC)</span>
+            </div>
+            <div class="tl-period">Dec 2024 – Present</div>
+          </div>
+          <div class="tl-role">Project Fellow · Government of Haryana</div>
+          <ul class="tl-bullets">
+            <li>Derive InSAR <strong>line-of-sight (LOS) velocity</strong> from Sentinel-1 data across the entire state of Haryana using PSInSAR.</li>
+            <li>Generate <strong>DEMs, DSMs, DTMs and orthophotos</strong> for 7+ mining sites from stereo and UAV imagery in <strong>Trimble Inpho UAS Master</strong>.</li>
+            <li>Run satellite <strong>time-series crop mapping down to cadastral (parcel) level</strong> using multi-date satellite data.</li>
+            <li>Process multispectral, hyperspectral and SAR imagery in <strong>ArcGIS Pro</strong> and <strong>SNAP</strong> for research and project development.</li>
+            <li>Collect ground truth with <strong>DGPS, LAI meter and chlorophyll meter</strong> to support satellite and photogrammetry products.</li>
+          </ul>
+          <div class="workstreams">
+            <div class="ws">
+              <div class="ws-kicker">SAR · PSInSAR</div>
+              <div class="ws-title">Statewide LOS velocity</div>
+              <div class="ws-use">Used for <b>groundwater verification</b> and <b>landslide prediction</b>.</div>
+              <a class="ws-link" href="https://hsac.org.in/land_subsidence" target="_blank" rel="noopener">Live portal <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+            </div>
+            <div class="ws">
+              <div class="ws-kicker">Photogrammetry</div>
+              <div class="ws-title">Mining-site DSM / DTM</div>
+              <div class="ws-use">Used for <b>illegal mining detection</b> and <b>volume estimation</b>.</div>
+            </div>
+            <div class="ws">
+              <div class="ws-kicker">Agriculture</div>
+              <div class="ws-title">Cadastral crop maps</div>
+              <div class="ws-use">Feeds <b>semi-physical rice yield</b> estimation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-item reveal reveal-delay-2">
+        <div class="tl-dot" style="border-color: var(--teal);"></div>
+        <div class="tl-body">
+          <div class="tl-header">
+            <div class="tl-company">
+              <span class="org-badge" title="NeoGeoInfo Technologies">
+                <img src="neogeoinfo-logo2.webp" alt="NeoGeoInfo Logo" class="org-logo-img">
+              </span>
+              <span>NeoGeoInfo Technologies Pvt Ltd</span>
+            </div>
+            <div class="tl-period">Sep – Dec 2024</div>
+          </div>
+          <div class="tl-role">Junior GIS Engineer</div>
+          <ul class="tl-bullets">
+            <li>Produced <strong>50+ maps</strong> for client GIS projects using <strong>ArcGIS</strong> and <strong>Global Mapper</strong>.</li>
+            <li>Created and maintained geospatial datasets, integrating <strong>AutoCAD</strong> drawings into GIS workflows.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Projects</div>
+      <h2 class="section-title">Research &amp; <em>builds</em></h2>
+    </div>
+    <div class="projects-grid">
+      <article class="project-card featured reveal reveal-delay-1">
+        <div>
+          <div class="project-num">01</div>
+          <h3 class="project-title">Land Subsidence Monitoring in Haryana using Sentinel-1 PSInSAR</h3>
+          <p class="project-desc">
+            State-scale Persistent Scatterer InSAR built from 36 Sentinel-1 images, producing LOS velocity
+            for the whole of Haryana. The results are published on a public HARSAC web portal where anyone
+            can drill down to a village and read its deformation time series.
+          </p>
+          <div class="project-tags">
+            <span class="ptag">PSInSAR</span>
+            <span class="ptag">Sentinel-1</span>
+            <span class="ptag">36 scenes</span>
+            <span class="ptag">LOS velocity</span>
+            <span class="ptag">Web GIS</span>
+          </div>
+        </div>
+        <figure class="portal-panel" aria-label="Live land subsidence portal">
+          <div class="portal-bar">hsac.org.in/land_subsidence <span class="live">Live</span></div>
+          <ul class="portal-list">
+            <li><span class="n">01</span>LOS velocity map for every district of Haryana</li>
+            <li><span class="n">02</span>Filter by district and tehsil, search by village</li>
+            <li><span class="n">03</span>Per-point time series in mm/year with trendlines</li>
+            <li><span class="n">04</span>Village points and time series exportable to Excel</li>
+          </ul>
+          <a class="portal-cta" href="https://hsac.org.in/land_subsidence" target="_blank" rel="noopener">Open the live portal <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+        </figure>
+      </article>
+
+      <article class="project-card featured reveal reveal-delay-1">
+        <div>
+          <div class="project-num">02</div>
+          <h3 class="project-title">Land Subsidence Monitoring in Kolkata using Sentinel-1 PSInSAR</h3>
+          <p class="project-desc">
+            Applied Persistent Scatterer InSAR to a 21-scene Sentinel-1 stack spanning 2019 to 2024,
+            processed in StaMPS on MATLAB. The resulting LOS velocity and deformation maps isolate
+            subsidence-prone zones relevant to urban infrastructure planning.
+          </p>
+          <div class="project-tags">
+            <span class="ptag">PSInSAR</span>
+            <span class="ptag">StaMPS</span>
+            <span class="ptag">MATLAB</span>
+            <span class="ptag">Sentinel-1</span>
+            <span class="ptag">SNAP</span>
+          </div>
+          <div style="margin-top: 1.2rem;">
+            <a class="btn-sm-outline" href="assets/Land Subsidence in Kolkata.pdf" download="Land Subsidence in Kolkata.pdf" target="_blank" rel="noopener">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+              Download Full Report (PDF, 5.8 MB)
+            </a>
+          </div>
+        </div>
+        <figure class="vel-panel" aria-label="LOS velocity range measured in Kolkata: minus 30 to plus 20 millimetres per year">
+          <div class="vel-head"><span>LOS velocity</span><span>mm / yr</span></div>
+          <div class="vel-ramp" aria-hidden="true"></div>
+          <div class="vel-ticks" aria-hidden="true">
+            <span style="left:0">−30</span>
+            <span style="left:20%">−20</span>
+            <span style="left:40%">−10</span>
+            <span class="zero" style="left:60%">0</span>
+            <span style="left:80%">+10</span>
+            <span style="left:100%">+20</span>
+          </div>
+          <div class="vel-legend"><span>← away from satellite</span><span>towards →</span></div>
+          <div class="vel-facts">
+            <div><strong>21</strong>scenes</div>
+            <div><strong>2019–24</strong>time span</div>
+            <div><strong>StaMPS</strong>processor</div>
+          </div>
+        </figure>
+      </article>
+
+      <article class="project-card reveal reveal-delay-2">
+        <div class="project-num">03</div>
+        <h3 class="project-title">Landslide Susceptibility Zonation of West &amp; South Sikkim using AHP</h3>
+        <p class="project-desc">
+          Built an Analytical Hierarchy Process weighted multi-criteria model in GIS to rank landslide
+          susceptibility, then produced zonation maps with recommendations for disaster management and
+          land-use planning.
+        </p>
+        <div class="project-tags">
+          <span class="ptag">AHP</span>
+          <span class="ptag">Multi-criteria</span>
+          <span class="ptag">ArcGIS</span>
+          <span class="ptag">Hazard zonation</span>
+        </div>
+      </article>
+
+      <article class="project-card reveal reveal-delay-3">
+        <div class="project-num">04</div>
+        <h3 class="project-title">AI-Driven LinkedIn Post Automation</h3>
+        <p class="project-desc">
+          An n8n workflow that takes a plain-language instruction from a Telegram bot, drafts the post
+          with the open-source Qwen model served locally through the LM Studio API, and sends it back to
+          Telegram for human approval before publishing to LinkedIn. No paid cloud LLM API.
+        </p>
+        <div class="project-tags">
+          <span class="ptag">n8n</span>
+          <span class="ptag">Qwen</span>
+          <span class="ptag">LM Studio</span>
+          <span class="ptag">Telegram</span>
+          <span class="ptag">Human-in-the-loop</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Technical Skills</div>
+      <h2 class="section-title">The working <em>stack</em></h2>
+    </div>
+    <div class="skill-ledger reveal reveal-delay-1">
+      <div class="skill-row">
+        <div class="skill-row-label">SAR / InSAR<small>Ground deformation</small></div>
+        <ul class="skill-chips"><li class="core">PSInSAR</li><li class="core">StaMPS (MATLAB)</li><li class="core">SNAP</li><li>LOS velocity mapping</li><li>Sentinel-1 time series</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">Photogrammetry<small>UAV and stereo</small></div>
+        <ul class="skill-chips"><li class="core">Trimble Inpho UAS Master</li><li>DEM / DSM / DTM</li><li>Orthophoto generation</li><li>Volume estimation</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">GIS &amp; Remote Sensing<small>Desktop and cloud</small></div>
+        <ul class="skill-chips"><li class="core">ArcGIS Pro</li><li>ArcMap</li><li>QGIS</li><li>ERDAS Imagine</li><li>ENVI</li><li>Google Earth Engine</li><li>Global Mapper</li><li>Google Earth Pro</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">Agriculture<small>Crops and yield</small></div>
+        <ul class="skill-chips"><li class="core">Time-series crop mapping</li><li>Cadastral-level crop inventory</li><li>Semi-physical rice yield model</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">Field Instruments<small>Ground truth</small></div>
+        <ul class="skill-chips"><li class="core">DGPS</li><li>LAI meter</li><li>Chlorophyll meter</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">Data<small>Sensors handled</small></div>
+        <ul class="skill-chips"><li>Sentinel-1</li><li>Sentinel-2</li><li>Landsat</li><li>UAV imagery</li><li>Stereo imagery</li><li>Hyperspectral</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">Programming &amp; CAD</div>
+        <ul class="skill-chips"><li class="core">MATLAB (StaMPS)</li><li>Python<span class="lvl">basic</span></li><li>R<span class="lvl">basic</span></li><li>AutoCAD</li></ul>
+      </div>
+      <div class="skill-row">
+        <div class="skill-row-label">AI &amp; Automation</div>
+        <ul class="skill-chips"><li>n8n workflows</li><li>Qwen via LM Studio API</li><li>RAG</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="wrap">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Education</div>
+      <h2 class="section-title">Education &amp; <em>certifications</em></h2>
+    </div>
+    <div class="edu-grid">
+      <div class="edu-card reveal reveal-delay-1">
+        <div class="edu-degree">M.Sc. in Remote Sensing & GIS</div>
+        <div class="edu-uni">Vidyasagar University, Midnapore, West Bengal</div>
+        <div class="edu-meta">
+          <div class="edu-year">2022 – 2024</div>
+          <div>
+            <div class="edu-cgpa">9.02</div>
+            <span class="edu-cgpa-label">CGPA / 10</span>
+          </div>
+        </div>
+      </div>
+      <div class="edu-card reveal reveal-delay-2">
+        <div class="edu-degree">B.Sc. in Geography</div>
+        <div class="edu-uni">Khejuri College, Purba Medinipur, West Bengal</div>
+        <div class="edu-meta">
+          <div class="edu-year">2019 – 2022</div>
+          <div>
+            <div class="edu-cgpa">9.07</div>
+            <span class="edu-cgpa-label">CGPA / 10</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="certs reveal">
+      <div class="certs-title">Certifications</div>
+      <div class="cert">
+        <span class="cert-issuer">NASA</span>
+        <span class="cert-name">An Introduction to Synthetic Aperture Radar (SAR) and Its Applications</span>
+        <span class="cert-topic">SAR fundamentals</span>
+      </div>
+      <div class="cert">
+        <span class="cert-issuer">NASA</span>
+        <span class="cert-name">Harnessing NISAR: Next-Generation Radar Observations for Earth Applications</span>
+        <span class="cert-topic">NISAR mission</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="contact-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">Contact</div>
+      <h2 class="section-title">Have a deformation, terrain or crop <em>problem</em>?</h2>
+      <p>
+        Open to Geospatial Analyst and Remote Sensing roles, research collaborations on SAR and
+        photogrammetry, and GeoAI projects.
+      </p>
+      <div class="contact-links" style="margin-top: 2rem;">
+        <a href="mailto:amitbhuniagis@gmail.com" class="clink">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg></div>
+          <div>
+            <div class="clink-label">Email</div>
+            <div class="clink-val">amitbhuniagis@gmail.com</div>
+          </div>
+        </a>
+        <a href="tel:+917908453388" class="clink">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></div>
+          <div>
+            <div class="clink-label">Phone</div>
+            <div class="clink-val">+91 79084 53388</div>
+          </div>
+        </a>
+        <a href="https://www.linkedin.com/in/amit-bhunia-813932260" class="clink" target="_blank" rel="noopener">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></div>
+          <div>
+            <div class="clink-label">LinkedIn</div>
+            <div class="clink-val">amit-bhunia-813932260</div>
+          </div>
+        </a>
+        <a href="Amit_Bhunia_CV.pdf" class="clink" download>
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></div>
+          <div>
+            <div class="clink-label">Curriculum Vitae</div>
+            <div class="clink-val">Download CV (PDF)</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="reveal reveal-delay-2">
+      <form class="contact-form" id="contactForm">
+        <div class="form-title">Send a Direct Message</div>
+        <div class="form-subtitle">Looking forward to connecting on projects and opportunities.</div>
+        <div class="form-group">
+          <input type="text" id="name" class="form-input" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+          <input type="email" id="email" class="form-input" placeholder="Your Email" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="subject" class="form-input" placeholder="Subject / Opportunity" required>
+        </div>
+        <div class="form-group">
+          <textarea id="message" rows="4" class="form-input form-textarea" placeholder="How can I assist with your remote sensing, SAR, or geospatial project?" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; gap: 0.6rem;">
+          <span>Send Message</span>
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <div id="formStatus" class="form-status" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Amit Bhunia · Remote Sensing &amp; GIS Analyst · HARSAC, Haryana
+    · Built with <span>♥</span> and satellite data
+  </div>
+</footer>
+
+<script>
+// ── Kinetic Grid (faithful port of Framer InteractiveGrid) ──────────────────
+(function() {
+  const canvas = document.getElementById('kgrid');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const C = {
+    gridSize: 52,
+    repulsionStrength: -0.55,
+    radius: 280,
+    dotSize: 1.4,
+    gridThickness: 0.5,
+    baseOpacity: 0.07,
+    hoverColor:  { r: 193, g: 68,  b: 14  }, // accent
+    gridColor:   { r: 160, g: 120, b: 80  }, // warm brown
+    dotColor:    { r: 160, g: 120, b: 80  },
+    bgColor:     { r: 0,   g: 0,   b: 0,  a: 0 },
+    clickInteraction: true,
+    clickForce: 0.4,
+    motionSpeed: 0.5,
+  };
+
+  let dots = new Map(), mousePos = null, isDown = false;
+  let width, height, animFrame;
+
+  function mapRep(v) { return v <= 0 ? v * 25 : v * 90; }
+
+  function spring() {
+    const t = Math.max(0, Math.min(1, C.motionSpeed));
+    return { k: 0.02 + t * 0.06, d: 0.70 + t * 0.05 };
+  }
+
+  function hoverIntensity(x, y) {
+    if (!mousePos) return 0;
+    const dx = x - mousePos.x, dy = y - mousePos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist > C.radius ? 0 : Math.pow(1 - dist / C.radius, 3.5);
+  }
+
+  function cursorPush(gx, gy) {
+    const rep = mapRep(C.repulsionStrength);
+    if (!mousePos || rep === 0) return { x: 0, y: 0 };
+    const dx = gx - mousePos.x, dy = gy - mousePos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (!dist) return { x: 0, y: 0 };
+    const p = Math.pow(1 - Math.min(dist / 400, 1), 2) * rep;
+    return { x: dx / dist * p, y: dy / dist * p };
+  }
+
+  function clickPush(gx, gy) {
+    if (!C.clickInteraction || !isDown || !mousePos) return { x: 0, y: 0 };
+    const dx = gx - mousePos.x, dy = gy - mousePos.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (!dist) return { x: 0, y: 0 };
+    const p = Math.pow(1 - Math.min(dist / 400, 1), 2) * C.clickForce * 100;
+    return { x: dx / dist * p, y: dy / dist * p };
+  }
+
+  function initDots() {
+    dots.clear();
+    const gs = C.gridSize;
+    for (let gx = -gs; gx < width + gs * 2; gx += gs)
+      for (let gy = -gs; gy < height + gs * 2; gy += gs)
+        dots.set(`${gx},${gy}`, { x: gx, y: gy, vx: 0, vy: 0, size: C.dotSize, targetSize: C.dotSize });
+  }
+
+  function resize() {
+    const hero = document.querySelector('.hero');
+    width  = hero ? hero.clientWidth  : window.innerWidth;
+    height = hero ? hero.clientHeight : window.innerHeight;
+    canvas.width  = width;
+    canvas.height = height;
+    initDots();
+  }
+
+  function blend(a, b, t) { return Math.round(a + (b - a) * t); }
+
+  function animate() {
+    const { k, d } = spring();
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw lines
+    dots.forEach((dot, key) => {
+      const [gxS, gyS] = key.split(',');
+      const gx = +gxS, gy = +gyS, gs = C.gridSize;
+      const hi = hoverIntensity(dot.x, dot.y);
+
+      [[`${gx+gs},${gy}`], [`${gx},${gy+gs}`]].forEach(([nk]) => {
+        const other = dots.get(nk);
+        if (!other) return;
+        const avgH = (hi + hoverIntensity(other.x, other.y)) / 2;
+        const r = blend(C.gridColor.r, C.hoverColor.r, avgH);
+        const g = blend(C.gridColor.g, C.hoverColor.g, avgH);
+        const b = blend(C.gridColor.b, C.hoverColor.b, avgH);
+        const op = C.baseOpacity + (1 - C.baseOpacity) * avgH;
+        ctx.beginPath();
+        ctx.moveTo(dot.x, dot.y);
+        ctx.lineTo(other.x, other.y);
+        ctx.lineWidth = C.gridThickness + avgH * 2;
+        ctx.strokeStyle = `rgba(${r},${g},${b},${op})`;
+        ctx.stroke();
+      });
+    });
+
+    // Update + draw dots
+    dots.forEach((dot, key) => {
+      const [gxS, gyS] = key.split(',');
+      const gx = +gxS, gy = +gyS;
+      const cp = cursorPush(gx, gy), ck = clickPush(gx, gy);
+      dot.vx = (dot.vx + (gx + cp.x + ck.x - dot.x) * k) * d;
+      dot.vy = (dot.vy + (gy + cp.y + ck.y - dot.y) * k) * d;
+      dot.x += dot.vx; dot.y += dot.vy;
+
+      const hi = hoverIntensity(dot.x, dot.y);
+      dot.targetSize = C.dotSize + hi * C.dotSize;
+      dot.size += (dot.targetSize - dot.size) * 0.15;
+
+      const r  = blend(C.dotColor.r, C.hoverColor.r, hi);
+      const g  = blend(C.dotColor.g, C.hoverColor.g, hi);
+      const b  = blend(C.dotColor.b, C.hoverColor.b, hi);
+      const op = C.baseOpacity + (1 - C.baseOpacity) * hi;
+
+      ctx.beginPath();
+      ctx.arc(dot.x, dot.y, Math.max(C.dotSize * 0.5, dot.size), 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${op})`;
+      ctx.fill();
+    });
+
+    animFrame = requestAnimationFrame(animate);
+  }
+
+  function onMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    const sx = (canvas.clientWidth || 1) / rect.width;
+    const sy = (canvas.clientHeight || 1) / rect.height;
+    const x = (e.clientX - rect.left) * sx;
+    const y = (e.clientY - rect.top) * sy;
+    mousePos = (x >= 0 && y >= 0 && x <= width && y <= height) ? { x, y } : null;
+  }
+
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mousedown', () => isDown = true);
+  window.addEventListener('mouseup',   () => isDown = false);
+
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
+  resize();
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    animate(); cancelAnimationFrame(animFrame);   // one static frame, no loop
+  } else {
+    animate();
+  }
+})();
+
+// ── Scroll-triggered reveals ──────────────────────────────────────────────────
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ── Mobile nav ─────────────────────────────────────────────────────────────────
+const navToggle = document.getElementById('nav-toggle');
+const navLinks  = document.getElementById('nav-links');
+navToggle.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', String(open));
+  navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+});
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  navLinks.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+  navToggle.setAttribute('aria-label', 'Open menu');
+}));
+
+// ── Nav shadow on scroll ───────────────────────────────────────────────────────
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── Contact Form Submission ───────────────────────────────────────────────────
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  contactForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const status = document.getElementById('formStatus');
+
+    if (!name || !email || !message) {
+      status.className = 'form-status error';
+      status.textContent = 'Please fill out all required fields.';
+      return;
+    }
+
+    const mailtoUri = `mailto:amitbhuniagis@gmail.com?subject=${encodeURIComponent(subject || 'Portfolio Inquiry from ' + name)}&body=${encodeURIComponent('From: ' + name + ' (' + email + ')\n\n' + message)}`;
+
+    status.className = 'form-status success';
+    status.textContent = 'Opening your email client... Thank you!';
+
+    setTimeout(() => {
+      window.location.href = mailtoUri;
+      contactForm.reset();
+    }, 600);
+  });
+}
+</script>
+
+<!-- ── India-focused globe with clickable career locations (Three.js) ─────────── -->
+<script type="module">
+import {
+  Scene, PerspectiveCamera, WebGLRenderer,
+  SphereGeometry, MeshBasicMaterial, Color, Mesh,
+  Group,
+  Vector3, BufferGeometry, Line, LineBasicMaterial,
+  Points, PointsMaterial, Float32BufferAttribute, CanvasTexture
+} from 'https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js';
+import { geoEquirectangular, geoPath } from 'https://cdn.jsdelivr.net/npm/d3-geo@3/+esm';
+
+// ── Palette (matches CSS tokens) ───────────────────────────────────────────
+const CFG = {
+  oceanColor:     '#f0e8dc',
+  dotColor:       '#c1440e',
+  outlineColor:   '#9c4a20',
+  graticuleColor: '#d8cfc2',
+  outlineWidth:   1.0,
+  gridWidth:      0.6,
+  home:  { lat: 23.2, lng: 81.0, zoom: 2.0 },   // whole of India in frame
+};
+
+// ── Career locations. zoom = camera distance when selected (smaller = closer) ─
+const PLACES = [
+  { id: 'harsac', type: 'work', label: 'HARSAC, Gurugram',
+    lat: 28.466, lng: 77.010, zoom: 1.02,
+    kicker: 'Work · Current',
+    title: 'Project Fellow',
+    org: 'Haryana Space Applications Centre (HARSAC), Sector 11, Gurugram, Haryana',
+    logo: 'HARSAC-Logo.png',
+    meta: [['Dec 2024', 'to present'], ['Govt. of', 'Haryana']],
+    note: 'Statewide Sentinel-1 PSInSAR LOS velocity, mining-site DSM / DTM in Inpho UAS Master, and cadastral-level crop mapping with rice yield estimation.',
+    link: { href: 'https://hsac.org.in/land_subsidence', text: 'Land subsidence portal' } },
+  { id: 'neogeo', type: 'work', label: 'NeoGeoInfo, Gurugram',
+    lat: 28.413, lng: 77.041, zoom: 1.02,
+    kicker: 'Work · Previous',
+    title: 'Junior GIS Engineer',
+    org: 'NeoGeoInfo Technologies Pvt. Ltd., Sector 48, Gurugram, Haryana',
+    logo: 'neogeoinfo-logo2.webp',
+    meta: [['Sep – Dec 2024', '']],
+    note: 'Produced 50+ maps for client GIS projects in ArcGIS and Global Mapper, and integrated AutoCAD drawings into GIS workflows.' },
+  { id: 'vu', type: 'edu', label: 'M.Sc., Midnapore',
+    lat: 22.430, lng: 87.300, zoom: 1.12,
+    kicker: 'Education · Postgraduate',
+    title: 'M.Sc. in Remote Sensing & GIS',
+    org: 'Vidyasagar University, Midnapore, West Bengal',
+    meta: [['2022 – 2024', ''], ['CGPA', '9.02']],
+    note: null },
+  { id: 'khejuri', type: 'edu', label: 'B.Sc., Purba Medinipur',
+    lat: 21.880, lng: 87.830, zoom: 1.12,
+    kicker: 'Education · Undergraduate',
+    title: 'B.Sc. in Geography',
+    org: 'Khejuri College, Purba Medinipur, West Bengal',
+    meta: [['2019 – 2022', ''], ['CGPA', '9.07']],
+    note: null },
+  { id: 'home', type: 'home', label: 'Home, Gangasagar',
+    lat: 21.640, lng: 88.080, zoom: 1.12,
+    kicker: 'Home',
+    title: 'Gangasagar',
+    org: 'Sagar Island, South 24 Parganas, West Bengal',
+    meta: [],
+    note: 'Where it started: the Hooghly estuary, a few kilometres from the Bay of Bengal.' },
+];
+
+const DEG = Math.PI / 180;
+let coarseDots = null, fineDots = null, ultraDots = null;
+function latLngTo3D(lat, lng, r) {
+  const φ = lat * DEG, λ = lng * DEG;
+  return new Vector3(Math.cos(φ) * Math.sin(λ) * r, Math.sin(φ) * r, Math.cos(φ) * Math.cos(λ) * r);
+}
+// rotation that brings (lat,lng) to face the camera (+z); Euler XYZ applies Y then X
+const viewFor = (lat, lng) => ({ x: lat * DEG, y: -lng * DEG });
+const wrapPI = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+// ── DOM ────────────────────────────────────────────────────────────────────
+const mount   = document.getElementById('globe-mount');
+const pinsEl  = document.getElementById('globe-pins');
+const cardEl  = document.getElementById('globe-card');
+const resetEl = document.getElementById('globe-reset');
+const legend  = document.getElementById('globe-legend');
+if (!mount) throw new Error('No #globe-mount');
+
+// ── Scene ──────────────────────────────────────────────────────────────────
+const R = 1.0;
+const scene  = new Scene();
+const camera = new PerspectiveCamera(45, 1, 0.01, 100);
+camera.position.set(0, 0, CFG.home.zoom);
+
+const renderer = new WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = 'srgb';
+const canvas = renderer.domElement;
+canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;cursor:grab;touch-action:pan-y;';
+mount.appendChild(canvas);
+
+function size() {
+  const w = mount.clientWidth || 380, h = mount.clientHeight || 380;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(size).observe(mount);
+size();
+
+const globe = new Group();
+scene.add(globe);
+const start = viewFor(CFG.home.lat, CFG.home.lng);
+globe.rotation.set(start.x, start.y, 0);
+
+globe.add(new Mesh(new SphereGeometry(R, 96, 96), new MeshBasicMaterial({ color: new Color(CFG.oceanColor) })));
+
+// graticule every 10°. Lines (not tubes) stay a crisp 1px at every zoom level.
+(function () {
+  const mat = new LineBasicMaterial({ color: new Color(CFG.graticuleColor) });
+  const add = pts => globe.add(new Line(new BufferGeometry().setFromPoints(pts), mat));
+  for (let lat = -80; lat <= 80; lat += 10) {
+    const pts = []; for (let i = 0; i <= 96; i++) pts.push(latLngTo3D(lat, -180 + i / 96 * 360, R)); add(pts);
+  }
+  for (let lng = -180; lng < 180; lng += 10) {
+    const pts = []; for (let i = 0; i <= 96; i++) pts.push(latLngTo3D(-90 + i / 96 * 180, lng, R)); add(pts);
+  }
+})();
+
+// land outlines + dot fill
+async function loadLand() {
+  const res = await fetch('https://raw.githubusercontent.com/martynafford/natural-earth-geojson/refs/heads/master/50m/physical/ne_50m_land.json');
+  const data = await res.json();
+
+  const outMat = new LineBasicMaterial({ color: new Color(CFG.outlineColor) });
+  const addRing = ring => {
+    if (ring.length < 2) return;
+    const pts = ring.map(([lng, lat]) => latLngTo3D(lat, lng, R * 1.0004));
+    globe.add(new Line(new BufferGeometry().setFromPoints(pts), outMat));
+  };
+  data.features.forEach(f => {
+    const g = f.geometry; if (!g) return;
+    if (g.type === 'Polygon') addRing(g.coordinates[0]);
+    else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => addRing(p[0]));
+  });
+
+  const BW = 2048, BH = 1024;
+  const off = document.createElement('canvas'); off.width = BW; off.height = BH;
+  const ctx = off.getContext('2d', { willReadFrequently: true });
+  const proj = geoEquirectangular().fitSize([BW, BH], { type: 'Sphere' });
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, BW, BH);
+  ctx.fillStyle = '#fff'; ctx.beginPath();
+  data.features.forEach(f => geoPath().projection(proj).context(ctx)(f));
+  ctx.fill();
+  const px = ctx.getImageData(0, 0, BW, BH).data;
+  const isLand = (lng, lat) => {
+    const x = ((Math.round((lng + 180) / 360 * BW) % BW) + BW) % BW;
+    const y = Math.max(0, Math.min(BH - 1, Math.round((90 - lat) / 180 * BH)));
+    return px[(y * BW + x) * 4] > 128;
+  };
+
+  // uniform 0.5° dot grid over ALL land (no density seams). Points are GPU sprites,
+  // so ~50k of them cost less than a few hundred instanced spheres.
+  const coords = [];
+  for (let lat = -88; lat <= 88; lat += 0.5) {
+    const step = 0.5 / Math.max(0.12, Math.cos(lat * DEG));
+    for (let lng = -180; lng < 180; lng += step)
+      if (isLand(lng, lat)) coords.push([lng, lat]);
+  }
+  const dotTex = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 32;
+    const g = c.getContext('2d'); g.fillStyle = '#fff';
+    g.beginPath(); g.arc(16, 16, 14, 0, Math.PI * 2); g.fill();
+    return new CanvasTexture(c);
+  })();
+  const buildDots = (list, px) => {
+    const arr = new Float32Array(list.length * 3);
+    list.forEach(([lng, lat], i) => { const v = latLngTo3D(lat, lng, R * 1.0006); arr[i*3] = v.x; arr[i*3+1] = v.y; arr[i*3+2] = v.z; });
+    const geo = new BufferGeometry(); geo.setAttribute('position', new Float32BufferAttribute(arr, 3));
+    const mat = new PointsMaterial({ color: new Color(CFG.dotColor), size: px * Math.min(devicePixelRatio, 2),
+      sizeAttenuation: false, map: dotTex, alphaTest: 0.5, transparent: false });
+    const pts = new Points(geo, mat);
+    globe.add(pts);
+    return pts;
+  };
+  coarseDots = buildDots(coords, 2.0);
+
+  // fine layer (0.125°) over the career belt, swapped in when the camera zooms close
+  const fine = [];
+  for (let lat = 4; lat <= 40; lat += 0.125)
+    for (let lng = 58; lng <= 106; lng += 0.125 / Math.cos(lat * DEG))
+      if (isLand(lng, lat)) fine.push([lng, lat]);
+  fineDots = buildDots(fine, 2.2);
+  fineDots.visible = false;
+
+  // street-level layer (0.03°) around Gurugram, where HARSAC and NeoGeoInfo sit ~6 km apart
+  const ultra = [];
+  for (let lat = 27.6; lat <= 29.3; lat += 0.03)
+    for (let lng = 76.1; lng <= 78.0; lng += 0.03) ultra.push([lng, lat]);
+  ultraDots = buildDots(ultra, 2.6);
+  ultraDots.visible = false;
+
+  canvas.style.transition = 'opacity 0.8s ease';
+  canvas.style.opacity = '1';
+}
+loadLand().catch(err => { console.error(err); canvas.style.opacity = '1'; });
+
+// ── Pins + legend (real buttons: keyboard and screen-reader friendly) ───────
+const pinBtns = new Map(), legBtns = new Map();
+PLACES.forEach(p => {
+  p.pos = latLngTo3D(p.lat, p.lng, R * 1.002);
+
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = `gpin ${p.type}`;
+  b.setAttribute('aria-label', `${p.kicker}: ${p.title}, ${p.org}`);
+  b.setAttribute('aria-pressed', 'false');
+  b.addEventListener('click', () => select(p.id));
+  pinsEl.appendChild(b); pinBtns.set(p.id, b);
+
+  const l = document.createElement('button');
+  l.type = 'button'; l.className = `gl-btn ${p.type}`; l.textContent = p.label;
+  l.setAttribute('aria-pressed', 'false');
+  l.addEventListener('click', () => select(p.id));
+  legend.appendChild(l); legBtns.set(p.id, l);
+});
+
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function renderCard(p) {
+  const meta = p.meta.map(([a, b]) => `<span>${b ? `${esc(a)} <b>${esc(b)}</b>` : `<b>${esc(a)}</b>`}</span>`).join('');
+  const logoHtml = p.logo ? `
+    <div class="gc-logo-wrap">
+      <img src="${esc(p.logo)}" alt="${esc(p.org)} logo" class="gc-logo-img">
+    </div>` : '';
+  cardEl.className = `globe-card ${p.type}`;
+  cardEl.style.setProperty('--pin', p.type === 'work' ? 'var(--accent)' : p.type === 'edu' ? 'var(--teal)' : 'var(--gold)');
+  cardEl.innerHTML = `
+    <button class="gc-close" type="button" aria-label="Close details">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="gc-header-layout">
+      ${logoHtml}
+      <div class="gc-header-content">
+        <div class="gc-type">${esc(p.kicker)}</div>
+        <div class="gc-title">${esc(p.title)}</div>
+        <div class="gc-org">${esc(p.org)}</div>
+      </div>
+    </div>
+    ${meta ? `<div class="gc-meta">${meta}</div>` : ''}
+    ${p.note ? `<div class="gc-note">${esc(p.note)}</div>` : ''}
+    ${p.link ? `<a class="gc-link" href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.text)} <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>` : ''}`;
+  cardEl.querySelector('.gc-close').addEventListener('click', clearSelection);
+  cardEl.hidden = false;
+}
+
+// ── Camera / rotation tween ────────────────────────────────────────────────
+let target = { x: start.x, y: start.y, z: CFG.home.zoom };
+let selected = null;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function flyTo(lat, lng, zoom) {
+  const v = viewFor(lat, lng);
+  // shortest path around the y axis
+  target = { x: v.x, y: globe.rotation.y + wrapPI(v.y - globe.rotation.y), z: zoom };
+  if (reduce) { globe.rotation.x = target.x; globe.rotation.y = target.y; camera.position.z = target.z; }
+}
+function select(id) {
+  const p = PLACES.find(q => q.id === id); if (!p) return;
+  if (selected === id) { clearSelection(); return; }
+  selected = id;
+  pinBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === id)));
+  legBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === id)));
+  // aim south of the pin so it lands in the upper third, clear of the detail card
+  const halfDeg = (p.zoom - R) * Math.tan(22.5 * DEG) / DEG;
+  flyTo(p.lat - halfDeg * 0.62, p.lng, p.zoom);
+  renderCard(p);
+  resetEl.hidden = false;
+}
+function clearSelection() {
+  selected = null;
+  pinBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+  legBtns.forEach(b => b.setAttribute('aria-pressed', 'false'));
+  cardEl.hidden = true;
+  resetEl.hidden = true;
+  flyTo(CFG.home.lat, CFG.home.lng, CFG.home.zoom);
+}
+resetEl.addEventListener('click', clearSelection);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && selected) clearSelection(); });
+
+// ── Mouse drag (touch scrolls the page instead; pins stay tappable) ─────────
+let drag = false, lastX = 0, lastY = 0;
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') return;
+  drag = true; lastX = e.clientX; lastY = e.clientY; canvas.style.cursor = 'grabbing';
+});
+window.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const k = 0.004 * (camera.position.z - R);       // slower when zoomed in
+  globe.rotation.y += (e.clientX - lastX) * k;
+  globe.rotation.x = Math.max(-1.3, Math.min(1.3, globe.rotation.x + (e.clientY - lastY) * k));
+  target.x = globe.rotation.x; target.y = globe.rotation.y;
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('pointerup', () => { drag = false; canvas.style.cursor = 'grab'; });
+
+// ── Render loop: ease toward target, project pins to screen ────────────────
+const tmp = new Vector3(), toCam = new Vector3();
+let lastT = performance.now();
+function tick(now = performance.now()) {
+  requestAnimationFrame(tick);
+  const dt = Math.min(0.1, (now - lastT) / 1000); lastT = now;
+  if (!drag && !reduce) {
+    const e = 1 - Math.pow(0.925, dt * 60);   // same feel at any frame rate
+    globe.rotation.x += (target.x - globe.rotation.x) * e;
+    globe.rotation.y += (target.y - globe.rotation.y) * e;
+    camera.position.z += (target.z - camera.position.z) * e;
+  }
+  if (fineDots) {
+    const z = camera.position.z;
+    coarseDots.visible = z >= 1.3;
+    fineDots.visible   = z < 1.3 && z >= 1.06;
+    ultraDots.visible  = z < 1.06;
+  }
+  globe.updateMatrixWorld();
+  const w = mount.clientWidth, h = mount.clientHeight;
+  PLACES.forEach(p => {
+    tmp.copy(p.pos).applyMatrix4(globe.matrixWorld);
+    toCam.copy(camera.position).sub(tmp);
+    const facing = tmp.dot(toCam) > 0;
+    tmp.project(camera);
+    const x = (tmp.x + 1) / 2 * w, y = (1 - tmp.y) / 2 * h;
+    const inside = x > -10 && x < w + 10 && y > -10 && y < h + 10;
+    const b = pinBtns.get(p.id);
+    b.style.transform = `translate(${x}px, ${y}px)`;
+    b.dataset.hidden = String(!(facing && inside));
+    b.tabIndex = facing && inside ? 0 : -1;
+  });
+  renderer.render(scene, camera);
+}
+tick();
+</script>
+</body>
+</html>

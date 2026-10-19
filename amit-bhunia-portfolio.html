@@ -202,14 +202,43 @@ nav.scrolled { box-shadow: 0 2px 24px rgba(35,26,14,0.08); }
   from { opacity: 0; transform: translate(-50%, 10px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
+.gc-header-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.gc-header-content {
+  flex: 1;
+  min-width: 0;
+}
+.gc-logo-wrap {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(35,26,14,0.06);
+}
+.gc-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .gc-type {
   display: inline-flex; align-items: center; gap: 0.4rem;
   font-family: 'IBM Plex Mono', monospace; font-size: 0.64rem; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--pin);
 }
 .gc-type::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--pin); }
-.gc-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.05rem; line-height: 1.25; margin: 0.3rem 1.6rem 0.15rem 0; color: var(--text); }
-.gc-org { font-size: 0.8rem; color: var(--text-mid); }
+.gc-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.02rem; line-height: 1.25; margin: 0.2rem 1.6rem 0.1rem 0; color: var(--text); }
+.gc-org { font-size: 0.78rem; color: var(--text-mid); line-height: 1.35; }
 .gc-meta { display: flex; gap: 0.9rem; flex-wrap: wrap; margin-top: 0.55rem; font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .gc-meta b { color: var(--text); font-weight: 500; }
 .gc-note { font-size: 0.8rem; color: var(--text-mid); margin-top: 0.55rem; padding-top: 0.55rem; border-top: 1px solid var(--border); line-height: 1.55; }
@@ -580,17 +609,62 @@ section:nth-child(even) { background: var(--bg-warm); }
   border-color: var(--border-dark);
   box-shadow: 0 4px 24px rgba(35,26,14,0.07);
 }
-.tl-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; gap: 1rem; }
 .tl-company {
   font-family: 'Fraunces', serif; font-size: 1.05rem;
   font-weight: 700; color: var(--text); letter-spacing: -0.01em;
-  display: flex; align-items: center; gap: 0.7rem;
+  display: flex; align-items: center; gap: 0.85rem;
 }
 
-/* org-badge — custom institutional crest (not a reproduction of any
-   official logo/emblem) marking each employer in the timeline */
-.org-badge { flex-shrink: 0; display: inline-flex; }
+/* org-badge — company logo / institutional badge in the timeline */
+.org-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 6px rgba(35,26,14,0.06);
+  padding: 4px;
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s, border-color 0.25s;
+}
+.timeline-item:hover .org-badge {
+  transform: translateY(-2px) scale(1.05);
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(35,26,14,0.12);
+}
+.org-badge img, .org-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .org-badge svg { display: block; }
+.btn-sm-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.25s var(--ease-out-expo);
+  box-shadow: 0 1px 4px rgba(35,26,14,0.04);
+}
+.btn-sm-outline:hover {
+  background: var(--accent);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(193,68,14,0.25);
+}
 .tl-period {
   font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--accent); font-weight: 500; white-space: nowrap;
@@ -875,19 +949,90 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   font-size: 0.85rem; color: rgba(240,233,222,0.75);
   text-decoration: none; padding: 1rem 1.2rem;
   border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
   transition: all 0.25s;
 }
 .clink:hover {
   border-color: var(--accent);
   color: var(--accent);
   background: rgba(193,68,14,0.08);
+  transform: translateX(4px);
 }
 .clink-icon {
-  width: 36px; height: 36px; flex-shrink: 0;
+  width: 40px; height: 40px; flex-shrink: 0;
   background: rgba(255,255,255,0.06);
+  border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem;
+  color: var(--accent);
 }
+.clink-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.clink-val {
+  font-size: 0.88rem;
+  color: #f0e9de;
+}
+
+/* ═══════════════════════════════════════════
+   CONTACT FORM
+═══════════════════════════════════════════ */
+.contact-form {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2.2rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+.form-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f0e9de;
+  margin-bottom: 0.2rem;
+}
+.form-subtitle {
+  font-size: 0.82rem;
+  color: rgba(240, 233, 222, 0.65);
+  margin-bottom: 0.4rem;
+}
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.form-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  color: #f0e9de;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.1);
+}
+.form-input::placeholder { color: rgba(240, 233, 222, 0.4); }
+.form-textarea { resize: vertical; min-height: 95px; }
+.form-status {
+  font-size: 0.82rem;
+  min-height: 1.2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.form-status.success { color: #52c41a; font-weight: 500; }
+.form-status.error { color: #ff4d4f; font-weight: 500; }
 
 /* ═══════════════════════════════════════════
    FOOTER
@@ -1125,8 +1270,10 @@ footer span { color: var(--accent); }
         <div class="tl-body">
           <div class="tl-header">
             <div class="tl-company">
-              <span class="org-badge" aria-hidden="true"><svg viewBox="0 0 40 40" width="30" height="30"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--accent)" stroke-width="1.1"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--accent)" stroke-width="0.6" stroke-dasharray="1 4" stroke-opacity="0.5" transform="rotate(-8 20 20)"/><circle cx="34.3" cy="13.4" r="1.6" fill="var(--accent)"/><text x="20" y="25.5" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="14" fill="var(--accent)">H</text></svg></span>
-              Haryana Space Applications Centre (HARSAC)
+              <span class="org-badge" title="Haryana Space Applications Centre (HARSAC)">
+                <img src="HARSAC-Logo.png" alt="HARSAC Logo" class="org-logo-img">
+              </span>
+              <span>Haryana Space Applications Centre (HARSAC)</span>
             </div>
             <div class="tl-period">Dec 2024 – Present</div>
           </div>
@@ -1163,8 +1310,10 @@ footer span { color: var(--accent); }
         <div class="tl-body">
           <div class="tl-header">
             <div class="tl-company">
-              <span class="org-badge" aria-hidden="true"><svg viewBox="0 0 40 40" width="30" height="30"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--teal)" stroke-width="1.1"/><circle cx="20" cy="20" r="17" fill="none" stroke="var(--teal)" stroke-width="0.6" stroke-dasharray="1 4" stroke-opacity="0.5" transform="rotate(-8 20 20)"/><circle cx="34.3" cy="13.4" r="1.6" fill="var(--teal)"/><text x="20" y="25.5" text-anchor="middle" font-family="Fraunces, serif" font-weight="700" font-size="14" fill="var(--teal)">N</text></svg></span>
-              NeoGeoInfo Technologies Pvt Ltd
+              <span class="org-badge" title="NeoGeoInfo Technologies">
+                <img src="neogeoinfo-logo2.webp" alt="NeoGeoInfo Logo" class="org-logo-img">
+              </span>
+              <span>NeoGeoInfo Technologies Pvt Ltd</span>
             </div>
             <div class="tl-period">Sep – Dec 2024</div>
           </div>
@@ -1231,6 +1380,12 @@ footer span { color: var(--accent); }
             <span class="ptag">MATLAB</span>
             <span class="ptag">Sentinel-1</span>
             <span class="ptag">SNAP</span>
+          </div>
+          <div style="margin-top: 1.2rem;">
+            <a class="btn-sm-outline" href="assets/Land Subsidence in Kolkata.pdf" download="Land Subsidence in Kolkata.pdf" target="_blank" rel="noopener">
+              <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+              Download Full Report (PDF, 5.8 MB)
+            </a>
           </div>
         </div>
         <figure class="vel-panel" aria-label="LOS velocity range measured in Kolkata: minus 30 to plus 20 millimetres per year">
@@ -1390,24 +1545,60 @@ footer span { color: var(--accent); }
         Open to Geospatial Analyst and Remote Sensing roles, research collaborations on SAR and
         photogrammetry, and GeoAI projects.
       </p>
+      <div class="contact-links" style="margin-top: 2rem;">
+        <a href="mailto:amitbhuniagis@gmail.com" class="clink">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg></div>
+          <div>
+            <div class="clink-label">Email</div>
+            <div class="clink-val">amitbhuniagis@gmail.com</div>
+          </div>
+        </a>
+        <a href="tel:+917908453388" class="clink">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></div>
+          <div>
+            <div class="clink-label">Phone</div>
+            <div class="clink-val">+91 79084 53388</div>
+          </div>
+        </a>
+        <a href="https://www.linkedin.com/in/amit-bhunia-813932260" class="clink" target="_blank" rel="noopener">
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></div>
+          <div>
+            <div class="clink-label">LinkedIn</div>
+            <div class="clink-val">amit-bhunia-813932260</div>
+          </div>
+        </a>
+        <a href="Amit_Bhunia_CV.pdf" class="clink" download>
+          <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></div>
+          <div>
+            <div class="clink-label">Curriculum Vitae</div>
+            <div class="clink-val">Download CV (PDF)</div>
+          </div>
+        </a>
+      </div>
     </div>
-    <div class="contact-links reveal reveal-delay-2">
-      <a href="mailto:amitbhuniagis@gmail.com" class="clink">
-        <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 7l9 6 9-6"/></svg></div>
-        amitbhuniagis@gmail.com
-      </a>
-      <a href="tel:+917908453388" class="clink">
-        <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg></div>
-        +91 79084 53388
-      </a>
-      <a href="https://www.linkedin.com/in/amit-bhunia-813932260" class="clink" target="_blank" rel="noopener">
-        <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></div>
-        LinkedIn: amit-bhunia-813932260
-      </a>
-      <a href="Amit_Bhunia_CV.pdf" class="clink" download>
-        <div class="clink-icon"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></div>
-        Download CV (PDF)
-      </a>
+
+    <div class="reveal reveal-delay-2">
+      <form class="contact-form" id="contactForm">
+        <div class="form-title">Send a Direct Message</div>
+        <div class="form-subtitle">Looking forward to connecting on projects and opportunities.</div>
+        <div class="form-group">
+          <input type="text" id="name" class="form-input" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+          <input type="email" id="email" class="form-input" placeholder="Your Email" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="subject" class="form-input" placeholder="Subject / Opportunity" required>
+        </div>
+        <div class="form-group">
+          <textarea id="message" rows="4" class="form-input form-textarea" placeholder="How can I assist with your remote sensing, SAR, or geospatial project?" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; gap: 0.6rem;">
+          <span>Send Message</span>
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <div id="formStatus" class="form-status" aria-live="polite"></div>
+      </form>
     </div>
   </div>
 </section>
@@ -1604,6 +1795,35 @@ const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 40);
 }, { passive: true });
+
+// ── Contact Form Submission ───────────────────────────────────────────────────
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  contactForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const message = document.getElementById('message').value.trim();
+    const status = document.getElementById('formStatus');
+
+    if (!name || !email || !message) {
+      status.className = 'form-status error';
+      status.textContent = 'Please fill out all required fields.';
+      return;
+    }
+
+    const mailtoUri = `mailto:amitbhuniagis@gmail.com?subject=${encodeURIComponent(subject || 'Portfolio Inquiry from ' + name)}&body=${encodeURIComponent('From: ' + name + ' (' + email + ')\n\n' + message)}`;
+
+    status.className = 'form-status success';
+    status.textContent = 'Opening your email client... Thank you!';
+
+    setTimeout(() => {
+      window.location.href = mailtoUri;
+      contactForm.reset();
+    }, 600);
+  });
+}
 </script>
 
 <!-- ── India-focused globe with clickable career locations (Three.js) ─────────── -->
@@ -1635,6 +1855,7 @@ const PLACES = [
     kicker: 'Work · Current',
     title: 'Project Fellow',
     org: 'Haryana Space Applications Centre (HARSAC), Sector 11, Gurugram, Haryana',
+    logo: 'HARSAC-Logo.png',
     meta: [['Dec 2024', 'to present'], ['Govt. of', 'Haryana']],
     note: 'Statewide Sentinel-1 PSInSAR LOS velocity, mining-site DSM / DTM in Inpho UAS Master, and cadastral-level crop mapping with rice yield estimation.',
     link: { href: 'https://hsac.org.in/land_subsidence', text: 'Land subsidence portal' } },
@@ -1643,6 +1864,7 @@ const PLACES = [
     kicker: 'Work · Previous',
     title: 'Junior GIS Engineer',
     org: 'NeoGeoInfo Technologies Pvt. Ltd., Sector 48, Gurugram, Haryana',
+    logo: 'neogeoinfo-logo2.webp',
     meta: [['Sep – Dec 2024', '']],
     note: 'Produced 50+ maps for client GIS projects in ArcGIS and Global Mapper, and integrated AutoCAD drawings into GIS workflows.' },
   { id: 'vu', type: 'edu', label: 'M.Sc., Midnapore',
@@ -1826,15 +2048,24 @@ PLACES.forEach(p => {
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 function renderCard(p) {
   const meta = p.meta.map(([a, b]) => `<span>${b ? `${esc(a)} <b>${esc(b)}</b>` : `<b>${esc(a)}</b>`}</span>`).join('');
+  const logoHtml = p.logo ? `
+    <div class="gc-logo-wrap">
+      <img src="${esc(p.logo)}" alt="${esc(p.org)} logo" class="gc-logo-img">
+    </div>` : '';
   cardEl.className = `globe-card ${p.type}`;
   cardEl.style.setProperty('--pin', p.type === 'work' ? 'var(--accent)' : p.type === 'edu' ? 'var(--teal)' : 'var(--gold)');
   cardEl.innerHTML = `
     <button class="gc-close" type="button" aria-label="Close details">
       <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
-    <div class="gc-type">${esc(p.kicker)}</div>
-    <div class="gc-title">${esc(p.title)}</div>
-    <div class="gc-org">${esc(p.org)}</div>
+    <div class="gc-header-layout">
+      ${logoHtml}
+      <div class="gc-header-content">
+        <div class="gc-type">${esc(p.kicker)}</div>
+        <div class="gc-title">${esc(p.title)}</div>
+        <div class="gc-org">${esc(p.org)}</div>
+      </div>
+    </div>
     ${meta ? `<div class="gc-meta">${meta}</div>` : ''}
     ${p.note ? `<div class="gc-note">${esc(p.note)}</div>` : ''}
     ${p.link ? `<a class="gc-link" href="${esc(p.link.href)}" target="_blank" rel="noopener">${esc(p.link.text)} <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>` : ''}`;
